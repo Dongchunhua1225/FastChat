@@ -26,6 +26,21 @@ def build_logger(logger_name, logger_filename):
     )
 
     # Set the format of root handlers
+    root_format_set(formatter)
+
+    # Redirect stdout and stderr to loggers
+    redirect_to_logger()
+
+    # Get logger
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)
+
+    # Add a file handler for all loggers
+    add_file_handler_for_all_loggers(logger_filename, formatter)
+
+    return logger
+
+def root_format_set(formatter):
     if not logging.getLogger().handlers:
         if sys.version_info[1] >= 9:
             # This is for windows
@@ -39,7 +54,7 @@ def build_logger(logger_name, logger_filename):
             logging.basicConfig(level=logging.INFO)
     logging.getLogger().handlers[0].setFormatter(formatter)
 
-    # Redirect stdout and stderr to loggers
+def redirect_to_logger():
     stdout_logger = logging.getLogger("stdout")
     stdout_logger.setLevel(logging.INFO)
     sl = StreamToLogger(stdout_logger, logging.INFO)
@@ -50,11 +65,7 @@ def build_logger(logger_name, logger_filename):
     sl = StreamToLogger(stderr_logger, logging.ERROR)
     sys.stderr = sl
 
-    # Get logger
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.INFO)
-
-    # Add a file handler for all loggers
+def add_file_handler_for_all_loggers(logger_filename, formatter):
     if handler is None:
         os.makedirs(LOGDIR, exist_ok=True)
         filename = os.path.join(LOGDIR, logger_filename)
@@ -66,9 +77,6 @@ def build_logger(logger_name, logger_filename):
         for name, item in logging.root.manager.loggerDict.items():
             if isinstance(item, logging.Logger):
                 item.addHandler(handler)
-
-    return logger
-
 
 class StreamToLogger(object):
     """

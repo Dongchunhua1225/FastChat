@@ -92,7 +92,9 @@ class ModelWorker:
         else:
             self.context_len = 2048
 
-        # generate_stream
+        generate_stream(no_register)
+        
+    def generate_stream(self, no_register):
         is_chatglm = "chatglm" in str(type(self.model)).lower()
         if is_chatglm:
             self.generate_stream_func = chatglm_generate_stream

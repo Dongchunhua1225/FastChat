@@ -183,6 +183,32 @@ def process_input(model_name, input):
 
     return input
 
+def update_params(
+    old_params: Dict[str, Any],
+    updated_model_name: Optional[str],
+    updated_messages: Optional[Union[str, List[Dict[str, str]]]],
+    *,
+    updated_temperature: Optional[float],
+    updated_top_p: Optional[float],
+    updated_max_tokens: Optional[int],
+    updated_echo: Optional[bool],
+    updated_stream: Optional[bool],
+) -> Dict[str, Any]:   
+    if updated_model_name:
+        old_params["model"] = updated_model_name
+    if updated_messages:
+        old_params["prompt"] = updated_messages
+    if updated_temperature:
+        old_params["temperature"] = updated_temperature
+    if updated_top_p:
+        old_params["top_p"] = updated_top_p
+    if updated_max_tokens:
+        old_params["max_new_tokens"] = updated_max_tokens
+    if updated_echo:
+        old_params["echo"] = updated_echo
+    if updated_stream:
+        old_params["stream"] = updated_stream
+
 
 def get_gen_params(
     model_name: str,
@@ -213,6 +239,11 @@ def get_gen_params(
 
         # Add a blank message for the assistant.
         conv.append_message(conv.roles[1], None)
+
+        current_models = ["gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
+
+        if model_name not in current_models:
+            raise ValueError("Please enter full model name")
 
         is_chatglm = "chatglm" in model_name.lower()
         if is_chatglm:

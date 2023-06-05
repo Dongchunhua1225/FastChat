@@ -313,27 +313,32 @@ class SupervisedDataset(Dataset):
             data_dict["labels"] = data_dict["labels"][:num_data]
 
         # Shuffle data to see more conversations, if only train on partial data
-        temp = list(zip(data_dict["input_ids"], data_dict["labels"]))
-        random.shuffle(temp)
-        res1, res2 = zip(*temp)
-        data_dict["input_ids"], data_dict["labels"] = list(res1), list(res2)
+        def shuffle_data(self, data_dict):
+            temp = list(zip(data_dict["input_ids"], data_dict["labels"]))
+            random.shuffle(temp)
+            res1, res2 = zip(*temp)
+            data_dict["input_ids"], data_dict["labels"] = list(res1), list(res2)
+        
+        shuffle_data(data_dict)
 
         # Dacheng: Get rid of short QA pair
-        self.input_ids = copy.deepcopy(data_dict["input_ids"])
-        self.labels = copy.deepcopy(data_dict["labels"])
-        length_arr = defaultdict(int)
-        for idx, (input, label) in enumerate(
-            zip(data_dict["input_ids"], data_dict["labels"])
-        ):
-            length_arr[str(len(label) // 100)] += 1
-            if len(input) <= 5:
-                del_idx = self.input_ids.index(input)
-                self.input_ids.pop(del_idx)
-                self.labels.pop(del_idx)
-            if len(label) <= 5:
-                del_idx = self.labels.index(label)
-                self.input_ids.pop(del_idx)
-                self.labels.pop(del_idx)
+        def remove_short_qa(self):
+            self.input_ids = copy.deepcopy(data_dict["input_ids"])
+            self.labels = copy.deepcopy(data_dict["labels"])
+            length_arr = defaultdict(int)
+            for idx, (input, label) in enumerate(
+                zip(data_dict["input_ids"], data_dict["labels"])
+            ):
+                length_arr[str(len(label) // 100)] += 1
+                if len(input) <= 5:
+                    del_idx = self.input_ids.index(input)
+                    self.input_ids.pop(del_idx)
+                    self.labels.pop(del_idx)
+                if len(label) <= 5:
+                    del_idx = self.labels.index(label)
+                    self.input_ids.pop(del_idx)
+                    self.labels.pop(del_idx)
+        remove_short_qa()
 
         for input, label in zip(self.input_ids, self.labels):
             assert len(input) >= 5
@@ -344,6 +349,8 @@ class SupervisedDataset(Dataset):
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
         return dict(input_ids=self.input_ids[i], labels=self.labels[i])
+    
+    
 
 
 @dataclass
